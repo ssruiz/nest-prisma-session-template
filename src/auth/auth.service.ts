@@ -1,61 +1,21 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import * as argon from 'argon2';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from '../user/user.service';
 import { AuthDto } from './dto';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private _prismaService: PrismaService,
-    private config: ConfigService,
-  ) {}
+  constructor(private userService: UserService) {}
 
-  async signIn(dto: AuthDto) {
-    // find user
-    const user = await this._prismaService.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
-
-    if (!user) throw new ForbiddenException('Credentials incorrect');
-
-    // compare password
-    const passwordMatches = await argon.verify(user.hash, dto.password);
-
-    if (!passwordMatches) throw new ForbiddenException('Credentials incorrect');
-
-    delete user.hash;
-    return { user };
+  signIn(dto: AuthDto) {
+    return this.userService.findUser(dto.email, dto.password);
   }
 
-  async signUp(dto: AuthDto) {
-    try {
-      // generate password hash
-      const hash = await argon.hash(dto.password);
+  signUp(dto: AuthDto) {
+    return this.userService.createUser(dto.email, dto.password, dto.username);
+  }
 
-      const user = await this._prismaService.user.create({
-        data: {
-          email: dto.email,
-          hash,
-          username: dto.username || dto.email,
-        },
-      });
-
-      delete user.hash;
-      return { user };
-    } catch (error) {
-      if (
-        error instanceof PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      )
-        throw new ForbiddenException('Credentials taken');
-
-      console.log('here');
-      throw error;
-    }
+  validateUser(email: string, password: string) {
+    return this.userService.validateUser(email, password);
   }
 }

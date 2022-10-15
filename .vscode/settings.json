@@ -1,0 +1,13 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "eslint.validate": ["javascript", "typescript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.organizeImports": true,
+    "source.sortMembers": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "editor.wordWrap": "on",
+  "prettier.proseWrap": "always"
+}
